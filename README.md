@@ -7,7 +7,7 @@ Universal Appwrite connection module for Nuxt. Drop-in auth, database, storage, 
 ### 1. Install
 
 ```bash
-npm install nuxt-appwrite appwrite node-appwrite
+pnpm add github:Stagepoint-Systems/nuxt-appwrite appwrite node-appwrite
 ```
 
 ### 2. Add to `nuxt.config.ts`
