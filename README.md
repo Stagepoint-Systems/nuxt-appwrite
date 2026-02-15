@@ -89,6 +89,268 @@ export default defineEventHandler(async (event) => {
 });
 ```
 
+## Usage Examples
+
+### Authentication
+
+**OAuth Login (Google, GitHub, etc.):**
+
+```vue
+<script setup>
+const { auth } = useAppwrite();
+
+function loginWithGoogle() {
+  auth.createOAuth2Session(
+    "google",
+    "http://localhost:3000/auth/callback", // success redirect
+    "http://localhost:3000/auth/failure", // failure redirect
+  );
+}
+</script>
+
+<template>
+  <button @click="loginWithGoogle">Sign in with Google</button>
+</template>
+```
+
+**Email/Password Signup & Login:**
+
+```ts
+const { auth } = useAppwrite();
+
+// Sign up
+await auth.create("unique()", "user@example.com", "password123", "John Doe");
+
+// Log in (creates a session)
+await auth.createEmailPasswordSession("user@example.com", "password123");
+
+// Get current user
+const user = await auth.get();
+
+// Log out (current session)
+await auth.deleteSession("current");
+```
+
+**Check if logged in:**
+
+```vue
+<script setup>
+const { auth } = useAppwrite();
+
+const user = ref(null);
+
+onMounted(async () => {
+  try {
+    user.value = await auth.get();
+  } catch {
+    // Not logged in
+  }
+});
+</script>
+```
+
+---
+
+### Database
+
+**Create a document:**
+
+```ts
+const { db, DATABASE_ID } = useAppwrite();
+import { ID, Permission, Role } from "appwrite";
+
+await db.createDocument(DATABASE_ID, "posts", ID.unique(), {
+  title: "Hello World",
+  content: "My first post",
+  published: true,
+});
+```
+
+**Update a document:**
+
+```ts
+const { db, DATABASE_ID } = useAppwrite();
+
+await db.updateDocument(DATABASE_ID, "posts", "document_id_here", {
+  title: "Updated Title",
+});
+```
+
+**Delete a document:**
+
+```ts
+const { db, DATABASE_ID } = useAppwrite();
+
+await db.deleteDocument(DATABASE_ID, "posts", "document_id_here");
+```
+
+**Query with filters:**
+
+```ts
+const { query } = useAppwrite();
+import { Query } from "appwrite";
+
+// All published posts, newest first, limit 10
+const { documents } = await query("posts", [
+  Query.equal("published", true),
+  Query.orderDesc("$createdAt"),
+  Query.limit(10),
+]);
+
+// Search by text
+const { documents: results } = await query("posts", [
+  Query.search("title", "hello"),
+]);
+
+// Pagination
+const { documents: page2 } = await query("posts", [
+  Query.limit(10),
+  Query.offset(10),
+]);
+```
+
+**Get a single document:**
+
+```ts
+const { getDocument } = useAppwrite();
+
+const post = await getDocument("posts", "document_id_here");
+```
+
+---
+
+### File Storage
+
+**Upload a file:**
+
+```vue
+<script setup>
+const { storage, STORAGE_BUCKET_ID } = useAppwrite();
+import { ID } from "appwrite";
+
+async function uploadFile(event: Event) {
+  const file = (event.target as HTMLInputElement).files?.[0];
+  if (!file) return;
+
+  const result = await storage.createFile(STORAGE_BUCKET_ID, ID.unique(), file);
+  console.log("Uploaded:", result.$id);
+}
+</script>
+
+<template>
+  <input type="file" @change="uploadFile" />
+</template>
+```
+
+**Get file preview / download URLs:**
+
+```ts
+const { getFilePreview, getFileDownload } = useAppwrite();
+
+// Resized preview
+const previewUrl = getFilePreview("file_id", {
+  width: 400,
+  height: 300,
+  quality: 80,
+});
+
+// Direct download
+const downloadUrl = getFileDownload("file_id");
+```
+
+---
+
+### Realtime Subscriptions
+
+```vue
+<script setup>
+const { subscribe, DATABASE_ID } = useAppwrite();
+
+// Subscribe to all changes in a collection
+const unsub = subscribe(
+  `databases.${DATABASE_ID}.collections.messages.documents`,
+  (event) => {
+    console.log("Event:", event.events);
+    console.log("Payload:", event.payload);
+  },
+);
+
+// Subscribe to a specific document
+const unsub2 = subscribe(
+  `databases.${DATABASE_ID}.collections.messages.documents.doc123`,
+  (event) => console.log("Doc changed:", event.payload),
+);
+
+onUnmounted(() => {
+  unsub();
+  unsub2();
+});
+</script>
+```
+
+---
+
+### Teams & Roles
+
+```ts
+const { teams, hasRole, ADMIN_TEAM_ID } = useAppwrite();
+
+// Check if user is an admin
+const isAdmin = await hasRole(ADMIN_TEAM_ID, "owner");
+
+// List team members
+const members = await teams.listMemberships("team_id");
+```
+
+---
+
+### Server-Side (API Routes)
+
+**Create a document with admin permissions:**
+
+```ts
+// server/api/posts.post.ts
+import { ID, Permission, Role } from "node-appwrite";
+
+export default defineEventHandler(async (event) => {
+  const body = await readBody(event);
+  const { databases } = useAppwriteAdmin();
+  const dbId = useAppwriteDatabaseId();
+
+  return await databases.createDocument(dbId, "posts", ID.unique(), body, [
+    Permission.read(Role.any()),
+    Permission.write(Role.user(body.userId)),
+  ]);
+});
+```
+
+**Authenticate a request via JWT:**
+
+```ts
+// server/api/me.get.ts
+export default defineEventHandler(async (event) => {
+  const jwt = getHeader(event, "Authorization")?.replace("Bearer ", "");
+  if (!jwt) throw createError({ statusCode: 401 });
+
+  const { client, account } = useAppwriteJWT();
+  client.setJWT(jwt);
+
+  return await account.get();
+});
+```
+
+**List users (admin only):**
+
+```ts
+// server/api/admin/users.get.ts
+export default defineEventHandler(async () => {
+  const { users } = useAppwriteAdmin();
+  return await users.list();
+});
+```
+
+---
+
 ## Client Composable API
 
 `useAppwrite()` returns:
