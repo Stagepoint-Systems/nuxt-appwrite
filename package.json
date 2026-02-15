@@ -1,0 +1,55 @@
+{
+  "name": "nuxt-appwrite",
+  "version": "1.0.0",
+  "description": "Universal Appwrite connection module for Nuxt — drop-in auth, database, storage, realtime, and more.",
+  "type": "module",
+  "main": "./dist/module.mjs",
+  "types": "./dist/types.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/module.mjs",
+      "types": "./dist/types.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev:prepare": "nuxt-module-build build --stub && nuxi prepare playground",
+    "build": "nuxt-module-build build",
+    "prepack": "nuxt-module-build build",
+    "prepare": "nuxt-module-build build"
+  },
+  "dependencies": {
+    "@nuxt/kit": "^3.16.0",
+    "defu": "^6.1.4"
+  },
+  "peerDependencies": {
+    "appwrite": ">=16.0.0",
+    "node-appwrite": ">=14.0.0"
+  },
+  "peerDependenciesMeta": {
+    "appwrite": {
+      "optional": false
+    },
+    "node-appwrite": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@nuxt/module-builder": "^0.8.4",
+    "nuxt": "^4.3.0",
+    "appwrite": "^21.5.0",
+    "node-appwrite": "^21.1.0"
+  },
+  "keywords": [
+    "nuxt",
+    "nuxt-module",
+    "appwrite",
+    "auth",
+    "database",
+    "storage",
+    "realtime"
+  ],
+  "license": "MIT"
+}
