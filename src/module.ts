@@ -66,7 +66,7 @@ export default defineNuxtModule<ModuleOptions>({
     // ─── Plugin (initializes browser client) ────────────────────
     addPlugin({
       src: resolve("./runtime/plugin"),
-      mode: "all",
+      mode: "client",
     });
 
     // ─── Client Composable (auto-imported) ──────────────────────
