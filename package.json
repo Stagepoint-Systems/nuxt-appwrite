@@ -17,8 +17,7 @@
   "scripts": {
     "dev:prepare": "nuxt-module-build build --stub && nuxi prepare playground",
     "build": "nuxt-module-build build",
-    "prepack": "nuxt-module-build build",
-    "prepare": "nuxt-module-build build"
+    "prepack": "nuxt-module-build build"
   },
   "dependencies": {
     "@nuxt/kit": "^3.16.0",
